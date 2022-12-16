@@ -47,6 +47,100 @@ const CurrentLocation = () => {
     let year = d.getFullYear();
     return `${day} ${date} ${month} ${year}`;
   };
+  class Weather extends React.Component {
+    state = {
+      lat: undefined,
+      lon: undefined,
+      errorMessage: undefined,
+      temperatureC: undefined,
+      temperatureF: undefined,
+      city: undefined,
+      country: undefined,
+      description: undefined,
+      icon: "CLEAR_DAY",
+      sunrise: undefined,
+      sunset: undefined,
+      errorMsg: undefined,
+    };
+    componentDidMount() {
+      if (navigator.geolocation) {
+        this.getPosition()
+          .then((position) => {
+            this.getWeather(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+          })
+          .catch((err) => {
+            this.getWeather(28.67, 77.22);
+            alert(
+              "You have disabled location service.Allow 'This APP' to access your location."
+            );
+          });
+      } else {
+        alert("Geolocation not available");
+      }
+      this.timerID = setInterval(
+        () => this.getWeather(this.state.lat, this.state.lon),
+        600000
+      );
+    }
+    componentWillUnmount() {
+      clearInterval(this.timerID);
+    }
+    getPosition = (options) => {
+      return new Promise(function (resolve, reject) {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
+    };
+    getWeather = async (lat, lon) => {
+      const api_call = await fetch(
+        `${api.base}weather?lat=${lat}&lon=${lon}&units=metric&APPID=${api.key}`
+      );
+      const data = await api_call.json();
+      this.setState({
+        lat: lat,
+        lon: lon,
+        city: data.name,
+        temperatureC: Math.round(data.main.temp),
+        temperatureF: Math.round(data.main.temp * 1.8 + 32),
+        humidity: data.main.humidity,
+        main: data.weather[0].main,
+      });
+      switch (this.state.main) {
+        case "Haze":
+          this.setState({ icon: "CLEAR_DAY" });
+          break;
+        case "Cloud":
+          this.setState({ icon: "CLOUDY" });
+          break;
+        case "Rain":
+          this.setState({ icon: "Rain" });
+          break;
+        case "Snow":
+          this.setState({ icon: "SNOW" });
+          break;
+        case "Dust":
+          this.setState({ icon: "WIND" });
+          break;
+        case "Drizzle":
+          this.setState({ icon: "SLEET" });
+          break;
+        case "Fog":
+          this.setState({ icon: "FOG" });
+          break;
+        case "Smoke":
+          this.setState({ icon: "SMOKE" });
+          break;
+        case "Tornado":
+          this.setState({ icon: "Wind" });
+          break;
+        default:
+          this.setState({ icon: "CLEAR_DAY" });
+          break;
+      }
+    };
+  }
   return (
     <div
       className={
