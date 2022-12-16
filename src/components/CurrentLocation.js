@@ -140,6 +140,11 @@ const CurrentLocation = () => {
           break;
       }
     };
+    render() {
+      if (this.state.temperatureC) {
+        return <></>;
+      }
+    }
   }
   return (
     <div
